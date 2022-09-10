@@ -51,7 +51,7 @@ import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
  */
 export abstract class ClientApplication {
 
-    private readonly cryptoProvider: CryptoProvider;
+    protected readonly cryptoProvider: CryptoProvider;
     private tokenCache: TokenCache;
 
     /**
@@ -130,7 +130,7 @@ export abstract class ClientApplication {
      * Authorization Code flow. Ensure that values for redirectUri and scopes in AuthorizationCodeUrlRequest and
      * AuthorizationCodeRequest are the same.
      */
-    async acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult | null> {
+    async acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByCode called", request.correlationId);
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -301,8 +301,13 @@ export abstract class ClientApplication {
      * @param authority - user passed authority in configuration
      * @param serverTelemetryManager - initializes servertelemetry if passed
      */
-    protected async buildOauthClientConfiguration(authority: string, requestCorrelationId?: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
-
+    protected async buildOauthClientConfiguration(
+        authority: string,
+        requestCorrelationId?: string, 
+        serverTelemetryManager?: ServerTelemetryManager,
+        azureRegionConfiguration?: AzureRegionConfiguration, 
+        azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
+        
         this.logger.verbose("buildOauthClientConfiguration called", requestCorrelationId);
 
         // precedence - azureCloudInstance + tenant >> authority and request  >> config
@@ -314,7 +319,7 @@ export abstract class ClientApplication {
 
         serverTelemetryManager?.updateRegionDiscoveryMetadata(discoveredAuthority.regionDiscoveryMetadata);
 
-        return {
+        const clientConfiguration: ClientConfiguration = {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
@@ -347,8 +352,10 @@ export abstract class ClientApplication {
             },
             telemetry: this.config.telemetry,
             persistencePlugin: this.config.cache.cachePlugin,
-            serializableCache: this.tokenCache,
+            serializableCache: this.tokenCache            
         };
+
+        return clientConfiguration;
     }
 
     private getClientAssertion(authority: Authority): { assertion: string, assertionType: string } {
@@ -374,7 +381,7 @@ export abstract class ClientApplication {
         // Set requested claims hash if claims were requested
         if (authRequest.claims && !StringUtils.isEmpty(authRequest.claims)) {
             authRequest.requestedClaimsHash = await this.cryptoProvider.hashString(authRequest.claims);
-        } 
+        }
 
         return {
             ...authRequest,
@@ -417,10 +424,11 @@ export abstract class ClientApplication {
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
-            azureRegionConfiguration
+            azureRegionConfiguration,
+            skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache,
         };
 
-        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions, this.config.system.proxyUrl);
     }
 
     /**

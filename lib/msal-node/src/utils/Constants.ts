@@ -11,6 +11,11 @@ export enum HttpMethod {
     POST = "post",
 }
 
+export enum HttpStatus {
+    OK = 200,
+    REDIRECT = 302
+}
+
 /**
  * Constants used for region discovery
  */
@@ -49,7 +54,10 @@ export const CACHE = {
  */
 export const Constants = {
     MSAL_SKU: "msal.js.node",
-    JWT_BEARER_ASSERTION_TYPE: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+    JWT_BEARER_ASSERTION_TYPE: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+    AUTHORIZATION_PENDING: "authorization_pending",
+    HTTP_PROTOCOL: "http://",
+    LOCALHOST: "localhost"
 };
 
 /**
@@ -82,4 +90,9 @@ export const JwtConstants = {
     SUBJECT: "sub",
     NOT_BEFORE: "nbf",
     JWT_ID: "jti",
+};
+
+export const LOOPBACK_SERVER_CONSTANTS = {
+    INTERVAL_MS: 100,
+    TIMEOUT_MS: 5000
 };
