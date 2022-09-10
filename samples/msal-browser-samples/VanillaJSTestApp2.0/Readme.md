@@ -41,5 +41,3 @@ This developer sample is used to run basic use cases for the MSAL library. You c
 - Navigate to http://localhost:30662 (or whatever port number specified) with the browser of your choice.
 
 - In the web page, click on the "Sign In" button and select either `Sign in using Popup` or `Sign in using Redirect` to begin the auth flow.
-
-- bcheng
